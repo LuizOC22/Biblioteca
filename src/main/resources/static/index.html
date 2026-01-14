@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Biblioteca Comunitária</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f9; }
+        h1 { text-align: center; color: #333; }
+
+        /* Formulário */
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input { padding: 10px; margin: 5px; width: 200px; border: 1px solid #ddd; border-radius: 4px; }
+        button { cursor: pointer; border: none; padding: 10px 15px; border-radius: 4px; color: white; font-weight: bold; }
+        .btn-add { background-color: #28a745; width: 100%; margin-top: 10px; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+
+        /* Botões de Ação */
+        .btn-emprestar { background-color: #ffc107; color: #333; margin-right: 5px; }
+        .btn-devolver { background-color: #17a2b8; }
+    </style>
+</head>
+<body>
+
+<h1>📚 Biblioteca Comunitária</h1>
+
+<div class="card">
+    <h3>Cadastrar Novo Livro</h3>
+    <input type="text" id="titulo" placeholder="Título do Livro">
+    <input type="text" id="autor" placeholder="Autor">
+    <input type="number" id="exemplares" placeholder="Qtd. Exemplares">
+    <button class="btn-add" onclick="cadastrar()">Salvar Livro</button>
+</div>
+
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Título</th>
+        <th>Autor</th>
+        <th>Disponíveis</th>
+        <th>Ações</th>
+    </tr>
+    </thead>
+    <tbody id="tabela-livros">
+    </tbody>
+</table>
+<br><hr><br>
+<h2>📜 Histórico de Empréstimos</h2>
+<table>
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Leitor</th>
+        <th>Livro</th>
+        <th>Data</th>
+    </tr>
+    </thead>
+    <tbody id="tabela-historico">
+    </tbody>
+</table>
+<script>
+    const API_URL = 'http://localhost:8080/livros';
+
+    // 1. Carregar a lista ao abrir a página
+    carregarLivros();
+
+    function carregarLivros() {
+        fetch(API_URL)
+            .then(res => res.json())
+            .then(livros => {
+                const tabela = document.getElementById('tabela-livros');
+                tabela.innerHTML = ''; // Limpa a tabela antes de encher
+
+                livros.forEach(livro => {
+                    tabela.innerHTML += `
+                        <tr>
+                            <td>${livro.id}</td>
+                            <td>${livro.titulo}</td>
+                            <td>${livro.autor}</td>
+                            <td><strong>${livro.exemplares}</strong></td>
+                            <td>
+                                <button class="btn-emprestar" onclick="emprestar(${livro.id})">📖 Emprestar</button>
+                                <button class="btn-devolver" onclick="devolver(${livro.id})">🔙 Devolver</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            })
+            .catch(erro => console.error('Erro ao carregar livros:', erro));
+
+            carregarHistorico();
+
+        function carregarHistorico() {
+            fetch('http://localhost:8080/emprestimos')
+                .then(res => res.json())
+                .then(lista => {
+                    const tabela = document.getElementById('tabela-historico');
+                    tabela.innerHTML = '';
+
+                    lista.forEach(item => {
+                        // O Spring manda o objeto Livro dentro do Emprestimo.
+                        // Por isso acessamos item.livro.titulo
+                        tabela.innerHTML += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.nomeLeitor}</td>
+                                <td>${item.livro.titulo}</td>
+                                <td>${item.dataEmprestimo}</td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+    }
+
+    // 2. Cadastrar Livro
+    function cadastrar() {
+        const titulo = document.getElementById('titulo').value;
+        const autor = document.getElementById('autor').value;
+        const exemplares = document.getElementById('exemplares').value;
+
+        fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ titulo, autor, exemplares })
+        })
+        .then(res => res.json())
+        .then(() => {
+            alert("Livro cadastrado!");
+            carregarLivros(); // Atualiza a lista
+            // Limpar campos
+            document.getElementById('titulo').value = '';
+            document.getElementById('autor').value = '';
+            document.getElementById('exemplares').value = '';
+        })
+        .catch(erro => alert("Erro ao cadastrar! Verifique o console."));
+    }
+
+    // 3. Função de Empréstimo
+    function emprestar(id) {
+        const nome = prompt("Qual o nome do leitor?");
+
+        if (!nome) return; // Se cancelar, para tudo.
+
+        const dados = {
+            livroId: id,
+            nomeLeitor: nome
+        };
+
+        fetch(`${API_URL}/emprestar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        })
+        .then(res => res.text())
+        .then(mensagem => {
+            alert(mensagem);
+            carregarLivros();
+        })
+        .catch(erro => console.error('Erro ao emprestar:', erro));
+    }
+
+    // 4. Função de Devolução
+    function devolver(id) {
+        fetch(`${API_URL}/${id}/devolver`, { method: 'POST' })
+            .then(res => res.text())
+            .then(mensagem => {
+                alert(mensagem);
+                carregarLivros();
+            })
+            .catch(erro => console.error('Erro ao devolver:', erro));
+    }
+</script>
+
+</body>
+</html>
