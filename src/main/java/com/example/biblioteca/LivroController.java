@@ -25,7 +25,7 @@ public class LivroController {
 
     @PostMapping("/emprestar")
     public String emprestar(@RequestBody DadosEmprestimo dados) {
-        return service.emprestar(dados.getLivroId(), dados.getNomeLeitor());
+        return service.emprestar(dados.getLivroId(), dados.getUsuarioId());
     }
 
     @PostMapping("/{id}/devolver")

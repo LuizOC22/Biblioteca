@@ -3,11 +3,9 @@ package com.example.biblioteca;
 public class DadosEmprestimo {
     // As variáveis que recebem o JSON
     private Long livroId;
-    private String nomeLeitor;
+    private Long usuarioId;
 
-    // --- O QUE DEVE ESTAR FALTANDO AÍ: ---
 
-    // 1. Getters e Setters para livroId
     public Long getLivroId() {
         return livroId;
     }
@@ -15,11 +13,10 @@ public class DadosEmprestimo {
         this.livroId = livroId;
     }
 
-    // 2. Getters e Setters para nomeLeitor
-    public String getNomeLeitor() {
-        return nomeLeitor;
+    public Long getUsuarioId() {
+        return usuarioId;
     }
-    public void setNomeLeitor(String nomeLeitor) {
-        this.nomeLeitor = nomeLeitor;
+    public void setUsuarioId(Long usuarioId) {
+        this.usuarioId = usuarioId;
     }
 }

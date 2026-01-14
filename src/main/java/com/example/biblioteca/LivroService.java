@@ -14,6 +14,9 @@ public class LivroService {
     @Autowired
     private EmprestimoRepository emprestimoRepository;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
     public List <Livro> listarTodos(){
         return repository.findAll();
     }
@@ -22,31 +25,34 @@ public class LivroService {
         return repository.save(livro);
     }
 
-    public String emprestar(Long id, String nomeLeitor){
+    public String emprestar(Long id, Long usuarioId){
         Livro livro = repository.findById(id).orElse(null);
 
-        if (livro == null){
+        if (livro == null)
             return "Livro não encontrado!";
-        }
 
-        if (livro.getExemplares() <= 0){
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
+        if (usuario == null)
+            return "Usuario não encontrado! Cadastre-se primeiro";
+
+        if (livro.getExemplares() <= 0)
             return "Sem estoque! todos os livros se foram.";
-        }
+
 
         livro.setExemplares(livro.getExemplares() - 1);
         repository.save(livro);
 
-        Emprestimo emprestimo = new Emprestimo(nomeLeitor, livro);
+        Emprestimo emprestimo = new Emprestimo(usuario, livro);
 
         System.out.println("--- DEBUG ---");
-        System.out.println("Nome que chegou: " + nomeLeitor);
-        System.out.println("Nome dentro do objeto: " + emprestimo.getNomeLeitor());
+        System.out.println("Nome que chegou: " + usuarioId);
+        System.out.println("Nome dentro do objeto: " + emprestimo.getUsuario());
         System.out.println("Data dentro do objeto: " + emprestimo.getDataEmprestimo());
         System.out.println("-----------------");
 
         emprestimoRepository.save(emprestimo);
 
-        return "Livros emprestados para: " + nomeLeitor + "com sucesso! restam: " + livro.getExemplares();
+        return "Livros emprestados para: " + usuario.getNome() + "com sucesso! restam: " + livro.getExemplares();
     }
 
     public String devolver(Long id){
