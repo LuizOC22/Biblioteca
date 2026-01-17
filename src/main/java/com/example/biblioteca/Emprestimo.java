@@ -21,6 +21,8 @@ public class Emprestimo {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
+    private LocalDate dataDevolucao;
+
     public Emprestimo() {}
 
     public Emprestimo(Usuario usuario, Livro livro) {
@@ -40,5 +42,8 @@ public class Emprestimo {
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+
+    public LocalDate getDataDevolucao() {return dataDevolucao;}
+    public void setDataDevolucao(LocalDate dataDevolucao) {this.dataDevolucao = dataDevolucao; }
 
 }

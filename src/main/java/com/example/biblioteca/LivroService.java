@@ -2,6 +2,8 @@ package com.example.biblioteca;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.util.List;
 
 
@@ -62,8 +64,17 @@ public class LivroService {
             return "Livro não encontrado!";
         }
 
+        Emprestimo emprestimo = emprestimoRepository.findByLivroAndDataDevolucaoIsNull(livro).orElse(null);
+
+        if (emprestimo == null) {
+            return "Erro: Não encontrei nenhum emprestimo aberto para esse livro! ";
+        }
+
         livro.setExemplares(livro.getExemplares() + 1);
         repository.save(livro);
+
+        emprestimo.setDataDevolucao(LocalDate.now());
+        emprestimoRepository.save(emprestimo);
 
         return "Livro devolvido! agora temos: " + livro.getExemplares();
     }

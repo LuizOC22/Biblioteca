@@ -67,7 +67,7 @@
 <table>
     <thead>
     <tr>
-        <th>ID</th> <th>Leitor</th> <th>Livro</th> <th>Data</th>
+        <th>ID</th> <th>Leitor</th> <th>Livro</th> <th>Data</th> <th>Devolução</th>
     </tr>
     </thead>
     <tbody id="tabela-historico"></tbody>
@@ -78,7 +78,7 @@
 
     // Inicialização
     carregarLivros();
-    carregarUsuarios(); // Preenche o dropdown
+    carregarUsuarios();
     carregarHistorico();
 
     // --- FUNÇÕES DE USUÁRIO ---
@@ -175,23 +175,26 @@
     }
 
     function carregarHistorico() {
-        fetch(API + '/emprestimos')
-            .then(res => res.json())
-            .then(lista => {
-                const tab = document.getElementById('tabela-historico');
-                tab.innerHTML = '';
-                lista.forEach(item => {
-                    // AGORA ACESSAMOS item.usuario.nome
-                    tab.innerHTML += `
-                        <tr>
-                            <td>${item.id}</td>
-                            <td>${item.usuario.nome}</td>
-                            <td>${item.livro.titulo}</td>
-                            <td>${item.dataEmprestimo}</td>
-                        </tr>`;
+            fetch(API + '/emprestimos')
+                .then(res => res.json())
+                .then(lista => {
+                    const tab = document.getElementById('tabela-historico');
+                    tab.innerHTML = '';
+                    lista.forEach(item => {
+                        // Lógica Visual: Se tiver data, mostra. Se for null, mostra "PENDENTE"
+                        const devolucao = item.dataDevolucao ? item.dataDevolucao : '<span style="color:red; font-weight:bold;">PENDENTE</span>';
+
+                        tab.innerHTML += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.usuario.nome}</td>
+                                <td>${item.livro.titulo}</td>
+                                <td>${item.dataEmprestimo}</td>
+                                <td>${devolucao}</td>
+                            </tr>`;
+                    });
                 });
-            });
-    }
+        }
 </script>
 </body>
 </html>
